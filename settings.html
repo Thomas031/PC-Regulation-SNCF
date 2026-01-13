@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sauvegardes — PC Régulation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="settings">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="badge">💾 <span>Sauvegardes</span></div>
+      <div>
+        <h1>PC Régulation SNCF (RP)</h1>
+        <div class="sub"><span id="zoneName"></span> • Réel: <span id="realClock"></span> • RP: <span id="rpClock"></span></div>
+      </div>
+    </div>
+    <div class="rightbox">
+      <div class="nav">
+        <a href="index.html">Régulation</a>
+        <a href="incidents.html">Incidents</a>
+        <a href="journal.html">Main courante</a>
+        <a class="active" href="settings.html">Sauvegardes</a>
+        <a href="usagers.html">Usagers</a>
+      </div>
+      <div class="pill" id="statusPill">État réseau: <strong id="networkStatus">Normal</strong></div>
+      <div class="pill">Dernière sauvegarde: <strong id="savePill"><strong>—</strong></strong></div>
+      <button class="btn small" id="btnSaveNow">Sauvegarder</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card" style="margin-bottom:12px;">
+      <h2>Centre de sauvegarde</h2>
+      <div class="body">
+        <div class="toolbar">
+          <div class="left">
+            <button class="btn primary" id="btnSnapshot">Créer snapshot</button>
+            <button class="btn" id="btnExport">Exporter JSON</button>
+            <label class="btn" for="fileImport" style="cursor:pointer;">Importer JSON</label>
+            <input id="fileImport" type="file" accept="application/json" style="display:none;">
+          </div>
+          <div class="right">
+            <button class="btn danger" id="btnReset">Réinitialiser</button>
+          </div>
+        </div>
+        <div class="notice">
+          <strong>Sauvegarde pro</strong>
+          <small>Autosave stocké sur ton navigateur + snapshots (restaurables) + export/import pour déplacer le PC régulation sur un autre PC.</small>
+        </div>
+        <div class="pill" style="margin-top:10px;"><strong id="stateMeta">—</strong></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Paramètres RP</h2>
+        <div class="body">
+          <div class="grid2">
+            <div>
+              <label class="sub">Zone / Poste</label>
+              <input id="setZone" placeholder="CCR / PRCI / PC local…">
+            </div>
+            <div>
+              <label class="sub">Nom opérateur</label>
+              <input id="setOperator" placeholder="Nom staff régulateur">
+            </div>
+            <div>
+              <label class="sub">État réseau</label>
+              <select id="setStatus">
+                <option>Normal</option>
+                <option>Perturbé</option>
+                <option>Incident majeur</option>
+              </select>
+            </div>
+            <div>
+              <label class="sub">Décalage heure RP (minutes)</label>
+              <input id="setOffset" type="number" min="-720" max="720" step="1">
+            </div>
+            <div style="grid-column:1/-1; display:flex; align-items:center; gap:10px;">
+              <input id="setAutosave" type="checkbox" style="width:auto;">
+              <label class="sub" for="setAutosave" style="margin:0;">Activer autosave</label>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="btn primary" id="btnApplySettings">Appliquer</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Snapshots</h2>
+        <div class="body">
+          <div id="snapshotList" class="list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

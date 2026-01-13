@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Incidents — PC Régulation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="incidents">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="badge">⚠️ <span>Incidents</span></div>
+      <div>
+        <h1>PC Régulation SNCF (RP)</h1>
+        <div class="sub"><span id="zoneName"></span> • Réel: <span id="realClock"></span> • RP: <span id="rpClock"></span></div>
+      </div>
+    </div>
+    <div class="rightbox">
+      <div class="nav">
+        <a href="index.html">Régulation</a>
+        <a class="active" href="incidents.html">Incidents</a>
+        <a href="journal.html">Main courante</a>
+        <a href="settings.html">Sauvegardes</a>
+        <a href="usagers.html">Usagers</a>
+      </div>
+      <div class="pill" id="statusPill">État réseau: <strong id="networkStatus">Normal</strong></div>
+      <div class="pill">Dernière sauvegarde: <strong id="savePill"><strong>—</strong></strong></div>
+      <button class="btn small" id="btnSaveNow">Sauvegarder</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card">
+      <h2>Incidents (RP)</h2>
+      <div class="body">
+        <div class="toolbar">
+          <div class="left" style="flex:1; min-width:320px;">
+            <input id="searchIncident" placeholder="Rechercher (type, lieu, texte)…">
+            <select id="filterIncidentStatus" style="max-width:220px;">
+              <option value="Tous">Tous statuts</option>
+              <option>Ouvert</option>
+              <option>En cours</option>
+              <option>Clos</option>
+            </select>
+          </div>
+          <div class="right">
+            <a class="btn" href="index.html">← Retour régulation</a>
+          </div>
+        </div>
+
+        <div id="incidentList" class="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

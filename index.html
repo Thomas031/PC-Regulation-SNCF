@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PC Régulation SNCF (RP)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="index">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="badge">🚦 <span>PC</span></div>
+      <div>
+        <h1>PC Régulation SNCF (RP)</h1>
+        <div class="sub"><span id="zoneName"></span> • <span class="sub">Heure réelle:</span> <span id="realClock"></span> • <span class="sub">Heure RP:</span> <span id="rpClock"></span></div>
+      </div>
+    </div>
+
+    <div class="rightbox">
+      <div class="nav">
+        <a class="active" href="index.html">Régulation</a>
+        <a href="incidents.html">Incidents</a>
+        <a href="journal.html">Main courante</a>
+        <a href="settings.html">Sauvegardes</a>
+      </div>
+
+      <div class="pill" id="statusPill">État réseau: <strong id="networkStatus">Normal</strong></div>
+
+      <select id="statusSelect" class="pill" style="padding:8px 10px;">
+        <option>Normal</option>
+        <option>Perturbé</option>
+        <option>Incident majeur</option>
+      </select>
+
+      <div class="pill">Dernière sauvegarde: <strong id="savePill"><strong>—</strong></strong></div>
+      <button class="btn small" id="btnSaveNow">Sauvegarder</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="card" style="margin-bottom:12px;">
+      <h2>Indicateurs</h2>
+      <div class="body">
+        <div class="kpis">
+          <div class="kpi"><div class="label">Trains suivis</div><div class="value" id="kpiTrains">0</div></div>
+          <div class="kpi"><div class="label">Incidents ouverts</div><div class="value" id="kpiIncidents">0</div></div>
+          <div class="kpi"><div class="label">Retard moyen</div><div class="value" id="kpiDelay">0 min</div></div>
+          <div class="kpi"><div class="label">Trains retenus</div><div class="value" id="kpiRetenus">0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Tableau circulation (RP)</h2>
+        <div class="body">
+          <div class="toolbar">
+            <div class="left" style="min-width:320px; flex:1;">
+              <input id="searchTrain" placeholder="Rechercher (train, mission, ligne, OD, position)…">
+              <select id="filterStatus" style="max-width:220px;">
+                <option value="Tous">Tous statuts</option>
+                <option>En circulation</option>
+                <option>À quai</option>
+                <option>Retenu</option>
+                <option>Supprimé</option>
+                <option>Détourné</option>
+              </select>
+              <select id="filterLine" style="max-width:160px;" data-built="0">
+                <option value="Toutes">Toutes</option>
+              </select>
+            </div>
+            <div class="right">
+              <button class="btn primary" id="btnAddTrain">+ Ajouter un train</button>
+              <a class="btn" href="settings.html">Centre sauvegarde</a>
+            </div>
+          </div>
+
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Train</th>
+                  <th>Mission</th>
+                  <th>Ligne / Priorité</th>
+                  <th>Origine → Destination</th>
+                  <th>Position (éditable)</th>
+                  <th>Retard</th>
+                  <th>Statut</th>
+                  <th>Décision (éditable)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="trafficBody"></tbody>
+            </table>
+          </div>
+
+          <div class="notice" style="margin-top:10px;">
+            <strong>Mode RP (pas un jeu)</strong>
+            <small>Tout est manuel : tu mets à jour position, retard, décisions. Les actions alimentent automatiquement la main courante.</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Raccourcis</h2>
+        <div class="body">
+          <div class="list">
+            <div class="item">
+              <div class="title">Procédure rapide</div>
+              <div class="text">
+                1) Ajouter le train → 2) Mettre la position → 3) Ajuster retard → 4) Statut/decision → 5) Main courante automatique.
+              </div>
+            </div>
+            <div class="item">
+              <div class="title">Conseil “PC réel”</div>
+              <div class="text">
+                Toujours justifier : <span class="tag warn">cause</span> + <span class="tag info">décision</span> + <span class="tag ok">heure</span>.
+              </div>
+            </div>
+            <div class="item">
+              <div class="title">Liens</div>
+              <div class="links">
+                <a class="btn small" href="incidents.html">Ouvrir Incidents</a>
+                <a class="btn small" href="journal.html">Ouvrir Main courante</a>
+                <a class="btn small" href="settings.html">Sauvegardes</a>
+                <a href="usagers.html">Usagers</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <!-- Train modal -->
+    <div class="modal" id="modalTrain" style="display:none">
+      <header>
+        <h3>Ajouter un train</h3>
+        <button class="btn small ghost" id="closeModal">✕</button>
+      </header>
+      <div class="content">
+        <div class="grid2">
+          <div>
+            <label class="sub">N° train</label>
+            <input id="mTrainNumber" placeholder="ex: 832451 / SD92">
+          </div>
+          <div>
+            <label class="sub">Mission</label>
+            <input id="mTrainMission" placeholder="TER / TGV / FRET">
+          </div>
+          <div>
+            <label class="sub">Ligne</label>
+            <input id="mTrainLine" placeholder="L1">
+          </div>
+          <div>
+            <label class="sub">Priorité</label>
+            <select id="mTrainPriority">
+              <option value="1">1 (haute)</option>
+              <option value="2" selected>2 (normale)</option>
+              <option value="3">3 (basse)</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="sub">Origine → Destination</label>
+            <input id="mTrainOD" placeholder="STRASBOURG → SAVERNE">
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="sub">Position initiale</label>
+            <input id="mTrainPosition" placeholder="Gare / section / PK">
+          </div>
+          <div>
+            <label class="sub">Régulateur</label>
+            <input id="mTrainRegulator" placeholder="PC / Nom staff">
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn primary" id="mTrainSave">Ajouter</button>
+      </div>
+    </div>
+
+    <!-- Delay modal -->
+    <div class="modal" id="modalDelay" style="display:none">
+      <header>
+        <h3>Retard / Avance — <span id="mDelayTrain"></span></h3>
+        <button class="btn small ghost" onclick="closeModal()">✕</button>
+      </header>
+      <div class="content">
+        <input type="hidden" id="mDelayTrainId">
+        <div class="grid2">
+          <div>
+            <label class="sub">Valeur (min)</label>
+            <input id="mDelayValue" type="number" min="-120" max="999" step="1">
+          </div>
+          <div>
+            <label class="sub">Cause (RP)</label>
+            <input id="mDelayCause" placeholder="Signalisation, attente croisement, panne…">
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn primary" id="mDelayApply">Appliquer</button>
+      </div>
+    </div>
+
+    <!-- Incident modal -->
+    <div class="modal" id="modalIncident" style="display:none">
+      <header>
+        <h3>Déclarer un incident — <span id="mIncTrain"></span></h3>
+        <button class="btn small ghost" onclick="closeModal()">✕</button>
+      </header>
+      <div class="content">
+        <input type="hidden" id="mIncTrainId2">
+        <div class="grid2">
+          <div>
+            <label class="sub">Type</label>
+            <select id="mIncKind">
+              <option>Panne matériel</option>
+              <option>Obstacle sur voie</option>
+              <option>Signalisation</option>
+              <option>Accident de personne</option>
+              <option>Intrusion</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div>
+            <label class="sub">Gravité</label>
+            <select id="mIncSev">
+              <option>Mineur</option>
+              <option>Majeur</option>
+              <option>Critique</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="sub">Localisation</label>
+            <input id="mIncLoc" placeholder="Gare / section / PK">
+          </div>
+          <div style="grid-column:1/-1">
+            <label class="sub">Description RP</label>
+            <textarea id="mIncDesc" placeholder="Décrire la situation + impacts + mesures prises"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn" onclick="closeModal()">Annuler</button>
+        <button class="btn primary" id="mIncCreate">Créer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

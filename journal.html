@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Main courante — PC Régulation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="journal">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="badge">📓 <span>Main courante</span></div>
+      <div>
+        <h1>PC Régulation SNCF (RP)</h1>
+        <div class="sub"><span id="zoneName"></span> • Réel: <span id="realClock"></span> • RP: <span id="rpClock"></span></div>
+      </div>
+    </div>
+    <div class="rightbox">
+      <div class="nav">
+        <a href="index.html">Régulation</a>
+        <a href="incidents.html">Incidents</a>
+        <a class="active" href="journal.html">Main courante</a>
+        <a href="settings.html">Sauvegardes</a>
+        <a href="usagers.html">Usagers</a>
+      </div>
+      <div class="pill" id="statusPill">État réseau: <strong id="networkStatus">Normal</strong></div>
+      <div class="pill">Dernière sauvegarde: <strong id="savePill"><strong>—</strong></strong></div>
+      <button class="btn small" id="btnSaveNow">Sauvegarder</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <div class="card">
+        <h2>Ajouter une entrée</h2>
+        <div class="body">
+          <div class="grid2">
+            <div>
+              <label class="sub">Type</label>
+              <select id="logType">
+                <option>Information</option>
+                <option>Ordre</option>
+                <option>Incident</option>
+                <option>Décision</option>
+              </select>
+            </div>
+            <div>
+              <label class="sub">Train (optionnel)</label>
+              <select id="logTrain"></select>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="sub">Incident (optionnel)</label>
+              <select id="logIncident"></select>
+            </div>
+            <div style="grid-column:1/-1">
+              <label class="sub">Message</label>
+              <textarea id="logText" placeholder="Ex: 07:22 — Ordre: train 832451 retenu à SAVERNE, priorité au 9876…"></textarea>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="btn primary" id="btnAddLog">Ajouter</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Filtres</h2>
+        <div class="body">
+          <input id="searchLog" placeholder="Rechercher dans la main courante…">
+          <div style="height:10px"></div>
+          <select id="filterLogType">
+            <option value="Tous">Tous types</option>
+            <option>Information</option>
+            <option>Ordre</option>
+            <option>Incident</option>
+            <option>Décision</option>
+          </select>
+          <hr class="sep">
+          <a class="btn" href="index.html">← Retour régulation</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <h2>Entrées</h2>
+      <div class="body">
+        <div id="logList" class="list"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

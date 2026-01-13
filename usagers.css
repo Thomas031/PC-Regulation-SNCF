@@ -1,0 +1,106 @@
+/* =========================
+   Usagers (Afficheur gare)
+   ========================= */
+
+.us-topbar{
+  background: rgba(6,10,22,.92) !important;
+}
+
+.us-container{
+  padding-top: 14px;
+}
+
+.us-banner h2{
+  font-size: 13px;
+}
+
+.us-marquee{
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid rgba(26,42,74,.75);
+  background: rgba(0,0,0,.18);
+  padding: 12px 12px;
+}
+
+.us-marquee-inner{
+  display:inline-block;
+  white-space: nowrap;
+  font-weight: 900;
+  letter-spacing: .35px;
+  animation: usScroll 16s linear infinite;
+}
+
+@keyframes usScroll{
+  0%{ transform: translateX(100%); }
+  100%{ transform: translateX(-100%); }
+}
+
+.us-grid{
+  margin-top: 12px;
+}
+
+/* Table gare */
+.us-tablewrap{
+  overflow:auto;
+  border-radius: 16px;
+  border:1px solid rgba(26,42,74,.8);
+  background: rgba(0,0,0,.14);
+}
+
+.us-table{
+  width:100%;
+  border-collapse: collapse;
+  min-width: 640px;
+}
+
+.us-table th,
+.us-table td{
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(26,42,74,.55);
+  font-size: 14px;
+}
+
+.us-table th{
+  background: rgba(2,6,23,.65);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .9px;
+}
+
+.us-time{
+  font-weight: 900;
+  width: 90px;
+}
+
+.us-train{
+  font-weight: 900;
+  letter-spacing: .3px;
+  width: 110px;
+}
+
+.us-voie{
+  width: 70px;
+  font-weight: 900;
+  text-align: center;
+}
+
+/* Notes */
+.us-notes{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:10px;
+}
+@media (max-width: 900px){
+  .us-notes{ grid-template-columns: 1fr; }
+}
+
+.us-note{
+  border:1px solid rgba(26,42,74,.8);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.02);
+}

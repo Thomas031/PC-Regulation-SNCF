@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Info Trafic — SNCF (RP)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="usagers.css">
+</head>
+<body data-page="usagers">
+
+  <div class="topbar us-topbar">
+    <div class="brand">
+      <div class="badge">🚉 <span>Info voyageurs</span></div>
+      <div>
+        <h1>Informations voyageurs (RP)</h1>
+        <div class="sub">
+          <span id="zoneName"></span> • Heure: <span id="realClock"></span> • Heure RP: <span id="rpClock"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="rightbox">
+      <div class="pill" id="statusPill">
+        État du réseau: <strong id="networkStatus">Normal</strong>
+      </div>
+      <a class="btn small" href="index.html">Accès PC Régulation</a>
+    </div>
+  </div>
+
+  <div class="container us-container">
+
+    <!-- Bandeau perturbations -->
+    <div class="us-banner card">
+      <h2>
+        Message réseau
+        <span class="tag info" id="usOpenInc">0 incident(s)</span>
+      </h2>
+      <div class="body">
+        <div class="us-marquee">
+          <div class="us-marquee-inner" id="usMarqueeText">
+            Service normal — Bon voyage.
+          </div>
+        </div>
+        <div class="sub" style="margin-top:8px" id="usDetails"></div>
+      </div>
+    </div>
+
+    <div class="grid us-grid">
+
+      <!-- Départs -->
+      <div class="card">
+        <h2>Départs (RP) <span class="tag" id="usDepartCount">0</span></h2>
+        <div class="body">
+          <div class="us-tablewrap">
+            <table class="us-table">
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Train</th>
+                  <th>Destination</th>
+                  <th>Voie</th>
+                  <th>Info</th>
+                </tr>
+              </thead>
+              <tbody id="usDepartBody"></tbody>
+            </table>
+          </div>
+          <div class="sub" style="margin-top:10px">
+            Affichage RP : alimenté par le PC Régulation (retards + décisions + incidents).
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrivées -->
+      <div class="card">
+        <h2>Arrivées (RP) <span class="tag" id="usArriveCount">0</span></h2>
+        <div class="body">
+          <div class="us-tablewrap">
+            <table class="us-table">
+              <thead>
+                <tr>
+                  <th>Heure</th>
+                  <th>Train</th>
+                  <th>Provenance</th>
+                  <th>Voie</th>
+                  <th>Info</th>
+                </tr>
+              </thead>
+              <tbody id="usArriveBody"></tbody>
+            </table>
+          </div>
+          <div class="sub" style="margin-top:10px">
+            (Option) Tu peux afficher une seule gare : à paramétrer dans la page.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Petit panneau "consignes" -->
+    <div class="card" style="margin-top:12px;">
+      <h2>Consignes & sécurité</h2>
+      <div class="body">
+        <div class="us-notes">
+          <div class="us-note">
+            <div class="tag warn">Attention</div>
+            <div>Restez derrière la ligne jaune. Ne pas descendre sur les voies.</div>
+          </div>
+          <div class="us-note">
+            <div class="tag info">Information</div>
+            <div>Pour toute assistance, contactez le personnel en gare (RP).</div>
+          </div>
+          <div class="us-note">
+            <div class="tag ok">Conseil</div>
+            <div>Anticipez vos correspondances en cas de perturbations.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // ====== Page Usagers: affichage "gare" basé sur STATE (localStorage) ======
+    // Cette page lit les données sauvegardées du PC Régulation.
+
+    function getState(){
+      try { return JSON.parse(localStorage.getItem("PCREG_SNCF_RP_STATE_V2") || "null"); }
+      catch { return null; }
+    }
+
+    function pickGareFromPosition(pos){
+      // heuristique simple : prend ce qu'il y a avant "(" ou avant " - "
+      if (!pos) return "—";
+      let p = String(pos);
+      if (p.includes("(")) p = p.split("(")[0].trim();
+      if (p.includes(" - ")) p = p.split(" - ")[0].trim();
+      return p.trim() || "—";
+    }
+
+    function parseOD(od){
+      // "A → B" => {from:A, to:B}
+      const s = String(od || "");
+      const parts = s.split("→").map(x=>x.trim());
+      return { from: parts[0] || "—", to: parts[1] || "—" };
+    }
+
+    function computeDisplayTime(offsetMin=0){
+      const d = new Date(Date.now() + offsetMin*60*1000);
+      return d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"});
+    }
+
+    function infoFromTrain(t){
+      const d = Number(t.delayMin||0);
+      if (t.status === "Supprimé") return { label:"SUPPRIMÉ", cls:"bad" };
+      if (t.status === "Détourné") return { label:"DÉTOURNÉ", cls:"warn" };
+      if (t.status === "Retenu") return { label:"RETENU", cls:"warn" };
+      if (d > 0) return { label:`RETARD +${d} min`, cls: d<=10?"warn":"bad" };
+      if (d < 0) return { label:`AVANCE ${d} min`, cls:"ok" };
+      return { label:"À l'heure", cls:"ok" };
+    }
+
+    function renderUsagers(){
+      const S = getState();
+      if (!S) return;
+
+      // topbar (zone / status)
+      const zoneEl = document.getElementById("zoneName");
+      const netEl = document.getElementById("networkStatus");
+      if (zoneEl) zoneEl.textContent = S.settings?.zoneName || "Réseau";
+      if (netEl) netEl.textContent = S.settings?.networkStatus || "Normal";
+
+      // incidents ouverts
+      const openInc = (S.incidents||[]).filter(i => i.status !== "Clos");
+      const openCount = openInc.length;
+      document.getElementById("usOpenInc").textContent = `${openCount} incident(s)`;
+
+      // bandeau texte (marquee)
+      let marquee = "Service normal — Bon voyage.";
+      let details = "";
+      if ((S.settings?.networkStatus || "Normal") !== "Normal" || openCount > 0){
+        marquee = openCount > 0
+          ? `Perturbations en cours — ${openCount} incident(s) actif(s) — Merci de votre compréhension.`
+          : `Réseau perturbé — Merci de votre compréhension.`;
+
+        // détail = résumé incidents
+        details = openInc.slice(0,3).map(i => `• ${i.kind} — ${i.location} (${i.severity})`).join(" ");
+      }
+      document.getElementById("usMarqueeText").textContent = marquee;
+      document.getElementById("usDetails").textContent = details;
+
+      // construire des "lignes" départ/arrivée à partir des trains (RP)
+      // règle simple :
+      // - Départs = trains dont position contient "départ" OU status != "Supprimé"
+      // - Arrivées = trains dont position contient "arrivée" OU À quai
+      // (tu peux affiner ensuite par gare)
+      const trains = (S.trains||[])
+        .filter(t => t.mission !== "FRET") // option : masquer fret sur afficheur voyageurs
+        .slice(0, 12); // limiter pour affichage
+
+      const depRows = [];
+      const arrRows = [];
+
+      for (const t of trains){
+        const { from, to } = parseOD(t.od);
+        const posGare = pickGareFromPosition(t.position);
+        const voie = (t.position && t.position.toLowerCase().includes("voie"))
+          ? (t.position.match(/voie\s*([0-9]+)/i)?.[1] || "—")
+          : "—";
+
+        const info = infoFromTrain(t);
+        const heure = computeDisplayTime(Number(S.settings?.rpOffsetMinutes||0)); // RP "maintenant"
+        const isDepart = (t.position||"").toLowerCase().includes("départ") || t.status === "En circulation";
+        const isArrive = (t.position||"").toLowerCase().includes("arrivée") || t.status === "À quai";
+
+        if (isDepart){
+          depRows.push({ heure, train:t.number, dest:to, voie, info });
+        }
+        if (isArrive){
+          arrRows.push({ heure, train:t.number, prov:from, voie, info });
+        }
+
+        // fallback si rien ne match : on le met en départ
+        if (!isDepart && !isArrive){
+          depRows.push({ heure, train:t.number, dest:to, voie, info });
+        }
+      }
+
+      // render départs
+      const depBody = document.getElementById("usDepartBody");
+      depBody.innerHTML = depRows.map(r=>`
+        <tr>
+          <td class="us-time">${r.heure}</td>
+          <td class="us-train">${escapeHtml(r.train)}</td>
+          <td>${escapeHtml(r.dest)}</td>
+          <td class="us-voie">${escapeHtml(r.voie)}</td>
+          <td><span class="tag ${r.info.cls}">${escapeHtml(r.info.label)}</span></td>
+        </tr>
+      `).join("");
+      document.getElementById("usDepartCount").textContent = depRows.length;
+
+      // render arrivées
+      const arrBody = document.getElementById("usArriveBody");
+      arrBody.innerHTML = arrRows.map(r=>`
+        <tr>
+          <td class="us-time">${r.heure}</td>
+          <td class="us-train">${escapeHtml(r.train)}</td>
+          <td>${escapeHtml(r.prov)}</td>
+          <td class="us-voie">${escapeHtml(r.voie)}</td>
+          <td><span class="tag ${r.info.cls}">${escapeHtml(r.info.label)}</span></td>
+        </tr>
+      `).join("");
+      document.getElementById("usArriveCount").textContent = arrRows.length;
+    }
+
+    // auto-refresh (si le PC régulation modifie les données dans un autre onglet)
+    window.addEventListener("storage", (e) => {
+      if (e.key === "PCREG_SNCF_RP_STATE_V2") renderUsagers();
+    });
+
+    // initial render + refresh
+    renderUsagers();
+    setInterval(renderUsagers, 3000);
+  </script>
+</body>
+</html>
