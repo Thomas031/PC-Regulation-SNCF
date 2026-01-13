@@ -104,3 +104,23 @@
   padding: 10px 12px;
   background: rgba(255,255,255,.02);
 }
+
+/* === TITRES AFFICHEUR (Arrivées / Départs) === */
+
+.us-panel-title,
+.panel-name {
+  font-size: 22px;           /* taille afficheur */
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #eaf1ff;
+  padding: 6px 0;
+  white-space: nowrap;       /* empêche le rognage */
+}
+
+/* Empêche toute coupe du titre */
+.us-panel-head,
+.panel-head {
+  overflow: visible !important;
+}
+
